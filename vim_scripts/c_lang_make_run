@@ -17,17 +17,15 @@ PARENT_DIR="$(dirname -- "$1")"
 [[ ! -f "$INPUT" ]] && file_dne
 
 [[ "$(grep -i "curl" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lcurl" || EXTERNAL_LIBS_FLAG=""
-[[ "$(grep -i "pthread" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lpthread" || EXTERNAL_LIBS_FLAG=""
+
 [[ "$(grep -i "gtest" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lgtest" || EXTERNAL_LIBS_FLAG=""
 
-[[ "$(grep -i "math" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lm" || EXTERNAL_LIBS_FLAG=""
-
-function find_seg_fault(){
+function find_seg_fault() {
   echo ""$RED"ERROR"$NOCOLOR": SEGMENTATION FAULT"
   echo -e "run\nbacktrace" | gdb ./"$NAME"
 }
 
-function file_dne(){
+function file_dne() {
   echo "[-] $INPUT does not exist, cowardly refusing!"
   exit
 }
@@ -40,17 +38,20 @@ function check_exit() {
   exit
 }
 
-function compile(){
+function compile() {
   [[ "$1" == "c" ]] && COMPILER="clang" || COMPILER="clang++"
+
   [[ "$COMPILER" == "clang++" ]] && EXTRA_DEPS="--std=gnu++2a" || EXTRA_DEPS=""
-  "$COMPILER" "$EXTRA_DEPS" "$EXTERNAL_LIBS_FLAG" --pedantic-errors -Wextra -Wall -pthread -lm -g "$INPUT" -o "$NAME" && ./"$NAME"
+
+  "$COMPILER" "$EXTRA_DEPS" "$EXTERNAL_LIBS_FLAG" \
+			--pedantic-errors -Wextra -Wall -pthread \
+			-lm -g "$INPUT" -o "$NAME" && ./"$NAME"
   check_exit
 }
 
-function make_run(){
+function make_run() {
   make
   check_exit
-  exit
 }
 
 cd "$PARENT_DIR"
