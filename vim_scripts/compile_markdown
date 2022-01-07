@@ -1,0 +1,53 @@
+#!/usr/bin/env zsh
+
+name="$1:t:r"
+parent_dir="$(dirname "$1")"
+waypoint="$PWD"
+output_extension=""
+
+function open_pdf(){
+  xreader exported/"$name".pdf > /dev/null 2>&1 & disown
+}
+
+function open_existing_pdf(){
+  PID="$(echo "$process_count" | head -n1)"
+  wmctrl -ia "$(wmctrl -lp | awk -vpid="$PID" '$3==pid {print $1; exit}')"
+}
+
+function open_pptx(){
+  x exported/"$name".pptx 
+}
+function open_existing_pptx(){
+  kapp soffice
+  open_pptx
+}
+
+[[ "$waypoint" != "$parent_dir" ]] && cd "$parent_dir"
+[[ ! -d exported ]] && mkdir exported
+
+if [[ "$(grep "output: powerpoint_presentation" "$1")" ]]; then
+        # article on making powerpoints from markdown -> https://support.rstudio.com/hc/en-us/articles/360004672913
+        pandoc "$1" -s --wrap auto -o exported/"$name".pptx
+        output_extension="pptx"
+elif [[ "$(grep "CODE: CHEAT SHEET" "$1")" ]]; then
+        pandoc --verbose "$1" --variable urlcolor=blue -V geometry:paperwidth=0.5cm -V geometry:paperheight=0.5cm -V geometry:margin=0.5cm -o exported/"$name".pdf
+else
+        # https://stackoverflow.com/questions/13515893/set-margin-size-when-converting-from-markdown-to-pdf-with-pandoc
+        # helps with getting geometry without the need for the YAML header
+        #pandoc --verbose "$1" --variable urlcolor=blue \
+          #-V geometry:paperwidth=3cm -V geometry:paperheight=3cm -V geometry:margin=3cm -o "exported/$name".pdf
+        pandoc --verbose "$1" --variable urlcolor=blue -o "exported/$name".pdf
+        output_extension="pdf"
+fi
+
+#cd "$parent_dir"
+#xreader exported/"$name".pdf > /dev/null 2>&1 & disown
+#cd "$waypoint"
+
+process_count="$(ps aux | grep "$name.$output_extension" | grep -v "grep" | awk '{print $2}')"
+ #| while read process; do kill -SIGTERM "$process"; done
+if [[ -z "$process_count" ]]; then
+    [[ "$output_extension" == "pdf" ]] && open_pdf || open_pptx
+else
+    [[ "$output_extension" == "pdf" ]] && open_existing_pdf || open_existing_pptx
+fi

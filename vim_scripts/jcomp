@@ -1,0 +1,37 @@
+#!/usr/bin/env zsh
+
+# written by Jared Dyreson
+
+# script that will handle some of the annoying parts of Java code compiling
+# NOTE: this is not tested nor will it really be
+# I do not code in Java enough to give a shit
+
+# FEATURES
+#
+# fixes the annoying issue of file name being incorrect after each compile
+# removes java.class file after each compile
+# compiles the Java code
+
+function file_not_found_error() {
+	2&> echo "[-] File $1 does not exist"
+	exit
+}
+
+JAVA_SOURCE="$1"
+
+[[ ! -f "$JAVA_SOURCE" ]] && print_error
+
+# check for dependencies and install if necessary
+
+FILENAME="$1:t:r"
+
+# Source: https://stackoverflow.com/a/51344746
+
+JAVA_COMPLIENT_NAME="$(egrep -o "(?:([a-zA-Z_$][a-zA-Z\d_$]*(?:\.[a-zA-Z_$][a-zA-Z\d_$]*)*)\.)?([a-zA-Z_$][a-zA-Z\d_$]*)" "$JAVA_SOURCE" | tail -n1)"
+
+[[ "$FILENAME" != "$JAVA_COMPLIENT_NAME" ]] && mv "$1" "$JAVA_COMPLIENT_NAME".java
+# NOTE: this ^ might cause issues later down the road
+
+javac -Xlint "$JAVA_COMPLIENT_NAME".java
+java "$JAVA_COMPLIENT_NAME"
+rm *.class

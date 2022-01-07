@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+
+# super simple make run shell script
+#
+
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+BLUE="\033[1;34m"
+NOCOLOR="\033[0m"
+
+INPUT="$1"
+EXTENSION="$1:t:e"
+NAME="$1:t:r"
+CURRENT_DIR="$PWD"
+PARENT_DIR="$(dirname -- "$1")"
+
+[[ ! -f "$INPUT" ]] && file_dne
+
+[[ "$(grep -i "curl" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lcurl" || EXTERNAL_LIBS_FLAG=""
+[[ "$(grep -i "pthread" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lpthread" || EXTERNAL_LIBS_FLAG=""
+[[ "$(grep -i "gtest" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lgtest" || EXTERNAL_LIBS_FLAG=""
+
+[[ "$(grep -i "math" "$1")" ]] && EXTERNAL_LIBS_FLAG="-lm" || EXTERNAL_LIBS_FLAG=""
+
+function find_seg_fault(){
+  echo ""$RED"ERROR"$NOCOLOR": SEGMENTATION FAULT"
+  echo -e "run\nbacktrace" | gdb ./"$NAME"
+}
+
+function file_dne(){
+  echo "[-] $INPUT does not exist, cowardly refusing!"
+  exit
+}
+
+function check_exit() {
+  CODE="$?"
+  printf "\n"
+  [[ "$CODE" -eq 139 || "$CODE" -eq 2 ]] && find_seg_fault
+  [[ "$CODE" -eq 0 ]] && (echo ""$GREEN"EXITED SUCCESSFULLY""$NOCOLOR")
+  exit
+}
+
+function compile(){
+  [[ "$1" == "c" ]] && COMPILER="clang" || COMPILER="clang++"
+  [[ "$COMPILER" == "clang++" ]] && EXTRA_DEPS="--std=gnu++2a" || EXTRA_DEPS=""
+  "$COMPILER" "$EXTRA_DEPS" "$EXTERNAL_LIBS_FLAG" --pedantic-errors -Wextra -Wall -pthread -lm -g "$INPUT" -o "$NAME" && ./"$NAME"
+  check_exit
+}
+
+function make_run(){
+  make
+  check_exit
+  exit
+}
+
+cd "$PARENT_DIR"
+
+[[ -f Makefile ]] && make_run
+[[ "$EXTENSION" == "c" || "$EXTENSION" == "cpp" ]] && compile "$EXTENSION"
+
+cd "$CURRENT_DIR"

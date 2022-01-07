@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# written by Jared Dyreson
+# 02/06/2019
+
+# decompile a ELF executable and get the assembler code for it
+# use case
+  # you need assembler code, write it in C/C++ then decompile
+
+SOURCE="$1"
+
+[[ ! -f "$SOURCE" ]] && exit
+
+gdb -batch -ex 'file '$SOURCE'' -ex 'set disassembly-flavor intel' -ex 'disassemble main' \
+										| grep -iv 'dump' \
+										| awk '{$1=$2=""; print $0}' \
+										| sed 's/^\  //g' 

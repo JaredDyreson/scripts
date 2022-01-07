@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+
+# move the latest screen shot to assets
+# NOTE: needs; xclip and convert
+# sudo pacman -S --noconfirm xclip imagemagick
+
+[[ ! -d "assets" ]] && mkdir assets
+
+NAME="$1"
+
+DIR="$HOME/Pictures/screenshots"
+
+FILE="$(find $DIR -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
+
+[[ -z "$FILE" ]] && exit
+EXT="$FILE:t:e"
+
+NEW_FILENAME=$(\
+	dialog --title "Change asset name" \
+				 --inputbox "Save as: " 8 40 \
+	3>&1 1>&2 2>&3 3>&- \
+)
+
+
+NEW_FILENAME="$(tr -s ' ' <<< "$NEW_FILENAME" | tr ' ' '_')"
+
+mv "$FILE" "assets/$NEW_FILENAME.png"
+
+echo -n "assets/$NEW_FILENAME" | xclip -selection c

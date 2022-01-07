@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+FILE="/sys/firmware/acpi/tables/MSDM"
+
+[[ ! -f "$FILE" ]] && exit || sudo tail -c32 "$FILE" ; printf "\n"

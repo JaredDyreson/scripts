@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+# written by Jared Dyreson
+
+# NOTE: requires nasm ; sudo pacman -S nasm
+
+SOURCE="$1"
+
+[[ -z "$@" || ! -f "$SOURCE" ]] && exit
+
+FILENAME="$SOURCE:t:r"
+
+nasm -g -felf64 "$SOURCE" -l "$FILENAME".lst -o "$FILENAME".o
+
+[[ "$(grep "printf" "$SOURCE")" ]] && gcc -o output "$filename".o -lc \
+																   || ld "$FILENAME".o -o output
+
+rm -f "$FILENAME".o output "$FILENAME".txt

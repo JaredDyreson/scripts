@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+
+rustc "$1"
+./"$1:t:r"

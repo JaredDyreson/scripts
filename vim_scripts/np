@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+#
+# Simple script to make temporary source files
+# Helpful if you want to test code snippets
+# Might be safer to run in `piston`
+
+DEST="/tmp/scratch"
+
+[[ ! -d "$DEST" ]] && mkdir "$DEST"
+
+[[ -z "$@" ]] && exit
+
+# Expected file extensions
+# c -> C source
+# cpp -> C++
+# md -> Markdown
+# py -> Python
+# php -> PHP
+# rs -> rust
+
+[[ "$1" == "c" ]] && EXT="c"
+[[ "$(grep "py.*" <<< "$1")" ]] && EXT="py"
+[[ "$1" == "cpp" ]] && EXT="cpp"
+[[ "$1" == "md" ]] && EXT="md"
+[[ "$1" == "js" ]] && EXT="js"
+[[ "$1" == "php" ]] && EXT="php"
+[[ "$1" == "rust" ]] && EXT="rs" || EXT="$1"
+
+[[ -z "$EXT" ]] && exit
+
+filename="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
+
+FILE="$DEST/$filename.$EXT"
+
+vim "$FILE"
+
+[[ ! -f "$FILE" ]] && exit
+
+RENAME="$(grep -io "rename.*" "$FILE" | awk '{print $2}')"
+
+if [[ "$RENAME" ]]; then
+    mv "$FILE" "$DEST"/"$RENAME"
+    FILE=""$DEST"/$RENAME"
+    sed -i '/.*rename.*/d' "$FILE"
+fi
+
+echo "[+] Temporary scratch paper can be found in $FILE"

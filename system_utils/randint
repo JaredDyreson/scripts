@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# bash program to generate random alphanumeric strings
+
+numberChecker='^[0-9]+$'
+
+function randomStringUpperAndLowerCase {
+	# generate random character alphanumeric string (upper and lowercase)
+	if [[ "$2" < 1 ]]; then
+		echo "$2 is not a number or greater than one"
+	fi
+	cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w "$2" | head -n 1
+}
+
+function randomStringLoweCaseOnlyWithNumbers {
+	# generate random character alphanumeric string (lowercase only)
+	if [[ "$2" < 1 || "$2" =~ "$numberChecker" ]]; then
+		echo "$2 is not a number or greater than one"
+	fi
+	cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w "$2" | head -n 1 | awk '{print tolower($0)}'
+}
+
+function randIntBetweenZeroAndNine {
+	# generate random number between 0 and 9
+	cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | head --bytes 1
+	printf "\n"
+}
+
+function randIntBetweenZeroandNinetyNine {
+	# generate random number between 0 and 99
+	NUMBER=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 2)
+	if [ "$NUMBER" == "" ]; then
+		NUMBER=0
+	fi
+	printf "\n"
+}
+
+function randIntBetweenZeroAndNineHundredAndNinetyNine {
+	# generate random number between 0 and 999
+	NUMBER=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
+	if [ "$NUMBER" == "" ]; then
+		NUMBER=0
+	fi
+	printf "\n"
+}
+
+function usage {
+	printf "Usage: randint [OPTION]...[LENGTH] \n   -u|--uppercase  	prints random uppercase and lowercase string\n   -l|--lowercase   	prints random lowercase string\n   -n|--nine   		prints random number 0-9\n"
+}
+
+# setting up command line arguments
+if [[ "$1" = "-n" && -z "$2" ]]; then
+	echo "using -n argument"  > /dev/null
+elif [[ -z "$1" || -z "$2" ]]; then
+	usage
+	exit
+fi
+
+if [[ "$1" == "-u" || "$1" == "--uppercase" ]]; then
+	randomStringUpperAndLowerCase "$1" "$2"
+fi
+
+if [[ "$1" == "-l" || "$1" == "--lowercase" ]]; then
+	randomStringLoweCaseOnlyWithNumbers "$1" "$2"
+fi
+
+if [[ "$1" == "-n" || "$1" == "--nine" ]]; then
+	randIntBetweenZeroAndNine
+fi

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Example Output
+
+# ========= #
+# = HELLO = #
+# ========= #
+
+content="$1xxxx"
+surrounding=${2:-=}
+
+echo ${content//?/$surrounding}
+
+echo "$surrounding $1 $surrounding"
+
+echo ${content//?/$surrounding}

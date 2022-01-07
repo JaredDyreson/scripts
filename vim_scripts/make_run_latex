@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+# Compile and run LaTeX files from the command line
+# make_run_latex [OPTION] <FILENAME>
+
+function file_not_found() {
+		2&> echo "[ERROR] Cannot open $1, does not exist"
+		exit
+}
+function print_message() {
+		local MESSAGE="$1"
+		echo "$GREEN""$MESSAGE""$NOCOLOR"
+}
+
+GREEN="\033[1;32m"
+NOCOLOR="\033[0m"
+
+[[ ! -f "$1" ]] && file_not_found "$1"
+[[ -z "$2" ]] &&  DEST="exported" || DEST="$2"
+[[ ! -d "$DEST" ]] && mkdir "$DEST"
+
+FILENAME="$1:t:r"
+rubber -vvvv --unsafe -d "$1"
+latexmk -silent -c
+mv "$FILENAME".pdf "$DEST"
+
+print_message "Word count: $(texcount "$1" | awk '/Words in text/ {print $4}')"

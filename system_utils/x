@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+
+function none_works(){
+
+  TARGET="nemo $PWD"
+
+  function check_process(){
+    get_process_count "$TARGET"
+    #[[ -z "$pids" ]] && (xdg-open "$TARGET" > /dev/null 2>&1 & disown) || open_existing
+  }
+
+  function get_process_count(){
+    #ps aux | grep "$1" | grep -v "grep" | awk '{print $2}'
+    ps aux  | grep "$1"
+    #pids="$(ps aux | grep "$1" | grep -v "grep" | awk '{print $2}')"
+  }
+
+  function open_existing(){
+    PID="$(echo "$pids" | head -n1)"
+    wmctrl -ia "$(wmctrl -lp | awk -vpid="$PID" '$3==pid {print $1; exit}')"
+  }
+
+
+  [[ -z "$@" ]] && check_process
+
+}
+
+[[ -z "$@" ]] && (xdg-open "$(pwd)" > /dev/null 2>&1 & disown)
+for item in "$@"; do
+	xdg-open "$item" > /dev/null 2>&1 & disown
+done
+
+

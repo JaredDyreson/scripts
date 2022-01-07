@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# well this should work right out of the box
+# emulates the functionality of the Arduino IDE but will essentially allow me to program in pure C rather than the Arduino language
+# Since the provided IDE is aimed towards beginners, I wanted to try and be as true to pure C/C++ as possible
+
+if [ ! -z $1 ]; then
+    echo "Usage: compileAndPush [C Source]"
+    exit
+elif [ ! -f $1 ]; then
+    echo "Error: file not found at $1"
+fi
+
+filename="${1%.*}"
+avr-gcc -Os -DF_CPU=16000000UL -mmcu=atmega328p -c -o "$filename".o "$filename".c
+avr-gcc -mmcu=atmega328p "$filename".o -o "$filename"
+avr-objcopy -O ihex -R .eeprom "$filename" "$filename".hex
+avrdude -F -V -c arduino -p ATMEGA328P -P /dev/ttyACM0 -b 115200 -U flash:w:"$filename".hex

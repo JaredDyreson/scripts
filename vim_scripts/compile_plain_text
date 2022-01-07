@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+FILENAME="$1:t:r"
+
+[[ ! -d "exported" ]] && mkdir "exported"
+
+enscript -B --word-wrap --margins=72:72:30:30 --silent "$1" -o - \
+		| ps2pdf - exported/"$FILENAME".pdf
+
+rm -rf {"$FILENAME".ps}

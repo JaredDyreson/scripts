@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+# dependecy must be installed via "$(Rscript -e "install.packages('rmarkdown')")" 
+# found from here -> https://naysan.ca/2017/10/27/creating-an-rmarkdown-pdf-output-command-line-version/
+# NOTE: needs the `r` programming language to be installed
+# sudo pacman -S --noconfirm r
+
+FILE="$1"
+
+[[ ! -f "$FILE" ]] && exit
+
+Rscript -e "rmarkdown::render('$FILE', output_format='pdf_document')"
+FILENAME="$FILE:t:r"
+rm "$FILENAME"_{cache,files} 2>/dev/null

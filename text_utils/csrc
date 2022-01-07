@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+
+# support for Java, CPP, C, zsh/sh/bash, Python
+# NOTE: requires enscript | sudo pacman -S enscript
+# Can be integrated into a larger project such as a Makefile
+
+function no_header_found() {
+		echo "[ERROR] Could not locate header"
+		exit
+}
+
+function file_not_found() {
+		echo "[ERROR] Cannot load $1, does not exist"
+		exit
+}
+
+
+function find_extension() {
+		local SOURCE_DOCUMENT="$1"
+		local HEADER="$(head -n1 "$SOURCE_DOCUMENT")"
+
+		[[ "$HEADER" =~ "#\!\/usr\/bin\/env\s*([a-zA-Z0-9]+)" ]] && MATCH="$match[1]" || MATCH="NO HEADER"
+		
+		echo "$MATCH"
+}
+
+DESTINATION="csrc_exported"
+
+[[ ! -d "$DESTINATION" ]] && mkdir "$DESTINATION"
+
+for file in "$@"; do
+		[[ ! -f "$file" ]] && file_not_found "$file"
+
+
+		filename="$file:t:r"
+		FILE_EXTENSION="$file:t:e"
+
+		[[ "$FILE_EXTENSION" == "py" ]] && FILE_EXTENSION="python"
+
+		[[ -z "$FILE_EXTENSION" ]] && FILE_EXTENSION="$(find_extension "$file")"
+
+		[[ "$FILE_EXTENSION" == "NO HEADER" ]] && no_header_found
+
+		enscript -rG --word-wrap --line-numbers \
+				-p - --highlight="$FILE_EXTENSION" --color=1 -f Courier8 -c "$file" | ps2pdf - "$DESTINATION"/"$FILENAME".pdf
+done
+

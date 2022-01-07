@@ -1,2 +1,3 @@
-# scripts
-A collection of scripts that serve various roles
+# Scripts
+
+A collection of vim scripts essentially

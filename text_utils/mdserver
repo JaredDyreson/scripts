@@ -1,0 +1,19 @@
+#!/usr/bin/env zsh
+
+# shell script to automatically load a grip server
+#
+function start_server(){
+    echo "starting server"
+    #grip --browser --quiet "$1" > /dev/null 2>&1 & disown
+    vmd "$1" > /dev/null 2>&1 & disown
+}
+
+function refresh_server(){
+    #fuser -k 6419/tcp > /dev/null 2>&1
+    echo "[+] Reloading server..."
+}
+
+#[[ ! -f "$1" || -z "$@" ]] && exit 1
+start_server "$1"
+
+#[[ "$(sudo netstat -anp | grep ':6419 ')" ]] && start_server "$1"

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+function error() {
+	echo "Too loud"
+	exit
+}
+
+[[ "$1" -gt 100 ]] && error
+
+amixer sset 'Master' "$1"% 2>&1 /dev/null

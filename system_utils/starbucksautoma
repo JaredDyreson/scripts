@@ -1,0 +1,117 @@
+#!/usr/bin/env python3.9
+
+"""
+Official driver code
+AUTHOR: Jared Dyreson
+"""
+
+import os
+import pathlib
+import sys
+
+from StarbucksAutoma import driver_utils as du
+from StarbucksAutoma import starbucks_week
+from StarbucksAutoma.starbucks_week import truncate
+from sudo_execute.sudo_execute import sudo_execute
+from StarbucksAutoma.initialize import *
+from StarbucksAutoma.event_handler import GoogleEventHandler
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+
+from termcolor import colored
+import math
+import pdb
+import sys
+import time
+import traceback
+
+if(os.getuid() != 0):
+    raise EnvironmentError("Run as root")
+
+build_config = DEFAULT_BUILD_CONFIG
+if not (isinstance(build_config, BuildConfig)):
+    raise ValueError
+
+state = read_state(build_config)
+if(not state.is_configured):
+    raise EnvironmentError("We need to configure StarbucksAutoma")
+
+credentials = GoogleEventHandler()
+
+sudo_execute().swap_user("jared")
+
+try:
+    # TODO defaults
+    headless_ = Options()
+    headless_.add_argument('--no-sandbox')
+    headless_.headless = False
+    driver = webdriver.Firefox(options=headless_)
+except PermissionError:
+    print("[-] Current directory cannot be used, please go to the home dir")
+    quit()
+
+MINIMUM_HOURS_PER_WEEK= 17.0
+
+
+try:
+
+    pd = du.portal_driver(driver)
+
+    # path = os.path.abspath("/home/jared/Downloads/Offline Starbucks Portal/Working/page.html")
+    # url = pathlib.Path(path).as_uri()
+
+    # with open("/home/jared/Downloads/Offline Starbucks Portal/Working/page.html") as f:
+        # content = f.readlines()
+
+    # pd.driver.get(f'data:text/html;charset=utf-8,{content}')
+    # pd.driver.get(url)
+    # time.sleep(3)
+
+    pd.go_to_landing_page()
+
+    total = 0
+    end_range = 4
+    print(f"[+] Adding the next {end_range-total-1} weeks....")
+
+    for x in range(1, end_range):
+        processing_message_ = f'[+] Processing week {x} of {end_range-1}'
+
+        print(colored(processing_message_, 'white', 'on_grey'))
+        print(colored("[+] Merging current week and days working...", 'cyan'))
+
+        filtered_ = pd.filter_stitch()
+        week = starbucks_week.starbucks_week(filtered_, pd.get_current_week(), credentials)
+
+        hours_assigned = week.get_hours_for_overall_pay()
+
+
+        print(f'{week}\n{"="*80}')
+
+        total+=week.get_projected_income()
+        week.add_to_calendar()
+        pd.go_to_next_week()
+        print("="*80)
+        if(hours_assigned < MINIMUM_HOURS_PER_WEEK):
+            minimum_hours_message = f"[-] Please consider obtaining more hours, you only have {hours_assigned}/{MINIMUM_HOURS_PER_WEEK}"
+            print(colored(minimum_hours_message, 'red', 'on_grey'))
+
+    project_paycheck_message_ = f"[+] Projected paycheck amount: ${truncate(total, 2)}"
+
+    print(colored(project_paycheck_message_, 'green'))
+    print(colored("[+] Killing marionette driver...", 'red'))
+
+    # pd.kill_marionette()
+    print("[+] Exiting....")
+
+except Exception as error:
+    print("[-] Exception has been thrown, aborting....")
+    print(f"[-] Error: {error}")
+
+    _, _, tb = sys.exc_info()
+    filename, lineno, funname, line = traceback.extract_tb(tb)[-1]
+    print(f'{filename}:{lineno}, in {funname}\n\t{line}')
+    pdb.set_trace()
+    pd.kill_marionette()
+    del(credentials,
+        state)

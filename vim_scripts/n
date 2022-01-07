@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+[[ ! -d /tmp/notes/ ]] && mkdir -p /tmp/notes
+
+filename="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
+
+vim /tmp/notes/"$filename".txt
+
+[[ /tmp/notes/"$filename".txt ]] && echo "[+] Temporary note can be found in /tmp/notes/"$filename".txt"

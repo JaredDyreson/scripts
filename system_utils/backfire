@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+
+# backup Firefox data to an external hard drive easily
+
+function drive_not_found() {
+		echo "[ERROR] Cannot connect to $1"
+		exit 1
+}
+
+function permission_error() {
+		echo "[ERROR] Please run this as root"
+		exit 2
+}
+
+CURRENT=$(date +"%d %B %Y")
+
+SOURCE="$HOME/.mozilla/*"
+DESTINATION="/run/media/jared/External"
+
+[[ ! -d "$DESTINATION" ]] && drive_not_found "$DESTINATION"
+
+[[ "$(whoami)" != "root" ]] && permission_error
+
+CURRENT_DATE="$(echo "$CURRENT" | sed 's/\ /_/g')"
+NEW_FIREFOX_BACKUP="$DESTINATION/archives/firefox_data/$CURRENT_DATE"
+mkdir -p "$NEW_FIREFOX_BACKUP"
+
+echo "[INFO] Backing up Firefox at location $NEW_FIREFOX_BACKUP"
+
+cp -arv "$SOURCE" "$NEW_FIREFOX_BACKUP"

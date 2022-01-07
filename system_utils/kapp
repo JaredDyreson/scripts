@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+# kill all instances of an application
+[[ -z "$@" ]] && exit
+
+application_name="$(awk '{print tolower($0)}' <<< "$1")"
+ps aux | grep "$application_name"  | grep -v 'grep' |  awk '{print $2}' | while read process; do 
+  kill -9 "$process"
+done

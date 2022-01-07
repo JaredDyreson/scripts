@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+
+[[ -f /tmp/nvidia-off && "$(grep "called*" /tmp/nvidia-off)" ]] && echo "is off" || echo "is on"

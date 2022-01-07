@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+# This script was made to help facilitate running Python programs from vim
+
+FILE="$1"
+
+function file_not_found() {
+		2&> echo "[ERROR] Could not find $1"
+		exit
+}
+
+[[ -z "$@" || ! -f "$FILE" ]] && file_not_found "$FILE" || python "$FILE"

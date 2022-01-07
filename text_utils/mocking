@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# this script was inspired by the mocking spongebob meme
+
+# example: mocking "Shotguns in the trenches are bad"
+# output: ShOtGuNs iN ThE TrEnChEs aRe bAd
+
+[[ -z "$@" ]]  &&  exit
+
+perl -p -e 's/(.)(.)?/\u$1$2/g' <<< "$@"
