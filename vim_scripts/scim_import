@@ -1,0 +1,23 @@
+#!/usr/bin/env zsh
+
+[[ ! -d "tables" ]] && mkdir assets
+
+NEW_FILENAME=$(\
+	dialog --title "Table Name" \
+				 --inputbox "Save as: " 8 40 \
+	3>&1 1>&2 2>&3 3>&- \
+)
+
+NEW_FILENAME="$(tr -s ' ' <<< "$NEW_FILENAME" | tr ' ' '_')"
+
+sc-im "tables/$NEW_FILENAME.csv"
+
+cat << EOF
+\\begin{table}[htbp]
+\\begin{center}
+\\begin{tabluar}
+\\end{tabluar}
+\\caption{<++>}
+\\label{<++>}
+
+EOF

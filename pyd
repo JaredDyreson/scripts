@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+
+# Auto generate Python documentation for a given project
+#
+
+DESTINATION="$HOME/Documents/PythonDocumentation"
+
+[[ ! -d ".git" ]] && exit
+
+PROJECT_NAME=`basename $(pwd)`
+ORGANIZATION_NAME=`basename $(dirname $(git remote get-url origin))`
+REQUEST_DATE="$(date +%F)"
+CURRENT_PATH="$PWD"
+
+handsdown --external `git config --get remote.origin.url`
+
+mkdocs build
+
+# change main -> master
+
+find site -type f -name '*.html' -exec sed -i 's/blob\/main/blob\/master/g' {} \;
+
+# check if organization exists, make if it does not
+
+PROJECT_DEST="$DESTINATION/$ORGANIZATION_NAME/$PROJECT_NAME"
+
+[[ ! -d "$PROJECT_DEST" ]] && mkdir -p "$PROJECT_DEST"
+
+cd "$PROJECT_DEST"
+
+# Make a new branch
+
+NEW_BRANCH=""$PROJECT_NAME"_"$REQUEST_DATE""
+
+git checkout -b "$NEW_BRANCH"
+
+# Copy over asset to the destination
+
+cp -arv "$CURRENT_PATH/site" "$PROJECT_DEST"
+
+git add *
+
+git commit -m "I am an automated push to this project pertaining to documentation generated at $REQUEST_DATE"
+
+git push --set-upstream origin "$NEW_BRANCH"
+
+hub pull-request -m "I am an automated pull request for the project ($PROJECT_NAME) in the organization ($ORGANIZATION_NAME)"

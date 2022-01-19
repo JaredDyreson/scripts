@@ -23,5 +23,6 @@ FILENAME="$1:t:r"
 rubber -vvvv --unsafe -d "$1"
 latexmk -silent -c
 mv "$FILENAME".pdf "$DEST"
+rm -rf *.bbl *.rubbercache *.xml 
 
 print_message "Word count: $(texcount "$1" | awk '/Words in text/ {print $4}')"
